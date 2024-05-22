@@ -1,59 +1,71 @@
 package it.epicode.u5w2d2pratica.service;
 
+import it.epicode.u5w2d2pratica.dto.AutoreDto;
 import it.epicode.u5w2d2pratica.exception.AutoreNotFoundException;
-import it.epicode.u5w2d2pratica.exception.BlogNotFoundException;
 import it.epicode.u5w2d2pratica.model.Autore;
-import it.epicode.u5w2d2pratica.model.Blog;
+import it.epicode.u5w2d2pratica.repository.AutoreRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
 public class AutoreService {
+    @Autowired
+    private AutoreRepository autoreRepository;
 
-    private List<Autore> autori = new ArrayList<>();
+    public String saveAutore(AutoreDto autoreDto){
+        Autore autore = new Autore();
+        autore.setNome(autoreDto.getNome());
+        autore.setCognome(autoreDto.getCognome());
+        autore.setEmail(autoreDto.getEmail());
+        autore.setDataNascita(autoreDto.getDataNascita());
+        autore.setAvatar("https://ui-avatars.com/api/?name="+autore.getNome()+"+"+autore.getCognome());
 
-    public String saveAutore(Autore autore){
-        autori.add(autore);
-        return "Autore creato con id=" + autore.getId();
+        autoreRepository.save(autore);
+
+        return "Autore con id=" + autore.getId() + " salvato correttamente";
     }
 
-    public List<Autore> getBlogs(){
-        return autori;
+    public Page<Autore> getAutori(int page, int size, String sortBy){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return autoreRepository.findAll(pageable);
     }
 
-    public Optional<Autore> getAutore(int id){
-        return autori.stream().filter(autore -> autore.getId()==id).findFirst();
+    public Optional<Autore> getAutoreById(int id){
+        return autoreRepository.findById(id);
     }
 
-    public Autore updateAutore(int id, Autore autoreUpd){
-        Optional<Autore> autoreOptional = getAutore(id);
+    public Autore updateAutore(int id, AutoreDto autoreDto){
+        Optional<Autore> autoreOptional = getAutoreById(id);
 
         if(autoreOptional.isPresent()){
             Autore autore = autoreOptional.get();
+            autore.setNome(autoreDto.getNome());
+            autore.setCognome(autoreDto.getCognome());
+            autore.setEmail(autoreDto.getEmail());
+            autore.setDataNascita(autoreDto.getDataNascita());
 
-            autore.setNome(autoreUpd.getNome());
-            autore.setCognome(autoreUpd.getCognome());
-            autore.setEmail(autoreUpd.getEmail());
-            autore.setDataNascita(autoreUpd.getDataNascita());
-            return autore;
+            return autoreRepository.save(autore);
         }
         else{
-            throw new AutoreNotFoundException("Autore non trovato");
+            throw new AutoreNotFoundException("Autore con id=" + id+ " non trovato");
         }
     }
 
     public String deleteAutore(int id){
-        Optional<Autore> autoreOptional = getAutore(id);
+        Optional<Autore> autoreOptional = getAutoreById(id);
 
         if(autoreOptional.isPresent()){
-            autori.remove(autoreOptional.get());
-            return "Autore con id="+ id + " rimosso";
+            autoreRepository.delete(autoreOptional.get());
+            return "Autore con id=" + id + " cancellato correttamente";
         }
         else{
-            throw new AutoreNotFoundException("Autore non trovato");
+            throw new AutoreNotFoundException("Autore con id=" + id+ " non trovato");
         }
     }
 }

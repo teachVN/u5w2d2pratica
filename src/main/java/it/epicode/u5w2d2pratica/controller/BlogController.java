@@ -1,8 +1,10 @@
 package it.epicode.u5w2d2pratica.controller;
 
+import it.epicode.u5w2d2pratica.dto.BlogDto;
 import it.epicode.u5w2d2pratica.exception.BlogNotFoundException;
 import it.epicode.u5w2d2pratica.model.Blog;
 import it.epicode.u5w2d2pratica.service.BlogService;
+import it.epicode.u5w2d2pratica.service.BlogServiceList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,16 +16,18 @@ public class BlogController {
     @Autowired
     private BlogService blogService;
 
-    @PostMapping("/blogPosts")
-    public String saveBlog(@RequestBody Blog blog){
-        return blogService.saveBlog(blog);
+    @PostMapping("/api/blogPosts")
+    public String saveBlog(@RequestBody BlogDto blogDto){
+
+        return blogService.saveBlog(blogDto);
     }
 
-    @GetMapping("/blogPosts")
+    @GetMapping("/api/blogPosts")
     public List<Blog> getBlogs(){
+
         return blogService.getBlogs();
     }
-    @GetMapping("/blogPosts/{id}")
+    @GetMapping("/api/blogPosts/{id}")
     public Blog getBlogById(@PathVariable int id){
         Optional<Blog> blogOptional = blogService.getBlogById(id);
 
@@ -34,12 +38,14 @@ public class BlogController {
             throw new BlogNotFoundException("Blog non trovato");
         }
     }
-    @PutMapping("/blogPosts/{id}")
-    public Blog updateBlog(@PathVariable int id,@RequestBody Blog blog){
-        return blogService.updateBlog(id, blog);
+    @PutMapping("/api/blogPosts/{id}")
+    public Blog updateBlog(@PathVariable int id,@RequestBody BlogDto blogDto){
+
+        return blogService.updateBlog(id, blogDto);
     }
-    @DeleteMapping("/blogPosts/{id}")
+    @DeleteMapping("/api/blogPosts/{id}")
     public String deleteBlog(@PathVariable int id){
+
         return blogService.deleteBlog(id);
     }
 

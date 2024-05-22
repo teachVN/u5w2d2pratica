@@ -1,44 +1,77 @@
 package it.epicode.u5w2d2pratica.service;
 
+import it.epicode.u5w2d2pratica.dto.BlogDto;
+import it.epicode.u5w2d2pratica.exception.AutoreNotFoundException;
 import it.epicode.u5w2d2pratica.exception.BlogNotFoundException;
+import it.epicode.u5w2d2pratica.model.Autore;
 import it.epicode.u5w2d2pratica.model.Blog;
+import it.epicode.u5w2d2pratica.repository.AutoreRepository;
+import it.epicode.u5w2d2pratica.repository.BlogRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class BlogService {
-    private List<Blog> blogs = new ArrayList<>();
+    @Autowired
+    private BlogRepository blogRepository;
+    @Autowired
+    private AutoreRepository autoreRepository;
 
-    public String saveBlog(Blog blog){
-        blogs.add(blog);
-        return "Blog creato con id=" + blog.getId();
+    public String saveBlog(BlogDto blogDto){
+        Optional<Autore> autoreOptional = autoreRepository.findById(blogDto.getAutoreId());
+
+        Blog blog = new Blog();
+
+        if(autoreOptional.isPresent()){
+
+            blog.setContenuto(blogDto.getContenuto());
+            blog.setTitolo(blogDto.getTitolo());
+            blog.setCategoria(blogDto.getCategoria());
+            blog.setTempoLettura(blogDto.getTempoLettura());
+            blog.setCover("https://picsum.photos/200/300");
+            blog.setAutore(autoreOptional.get());
+
+            blogRepository.save(blog);
+            return "Blog con id=" + blog.getId() + " salvato correttamente";
+        }
+        else{
+            throw new AutoreNotFoundException("Autore con id=" + blog.getId()+ " non trovato");
+        }
     }
 
     public List<Blog> getBlogs(){
-        return blogs;
+        return blogRepository.findAll();
     }
 
     public Optional<Blog> getBlogById(int id){
-        return blogs.stream().filter(blog -> blog.getId()==id).findFirst();
+        return blogRepository.findById(id);
     }
 
-    public Blog updateBlog(int id, Blog blogUpd){
+    public Blog updateBlog(int id, BlogDto blogDto){
         Optional<Blog> blogOptional = getBlogById(id);
 
         if(blogOptional.isPresent()){
             Blog blog = blogOptional.get();
+            blog.setContenuto(blogDto.getContenuto());
+            blog.setTitolo(blogDto.getTitolo());
+            blog.setCategoria(blogDto.getCategoria());
+            blog.setTempoLettura(blogDto.getTempoLettura());
 
-            blog.setCategoria(blogUpd.getCategoria());
-            blog.setContenuto(blogUpd.getContenuto());
-            blog.setTitolo(blogUpd.getTitolo());
-            blog.setTempoLettura(blogUpd.getTempoLettura());
-            return blog;
+            Optional<Autore> autoreOptional = autoreRepository.findById(blogDto.getAutoreId());
+
+            if(autoreOptional.isPresent()){
+                blog.setAutore(autoreOptional.get());
+                return blogRepository.save(blog);
+            }
+            else{
+                throw new AutoreNotFoundException("Autore con id=" + id+ " non trovato");
+            }
         }
         else{
-            throw new BlogNotFoundException("Blog non trovato");
+            throw new BlogNotFoundException("Blog con id=" + id+ " non trovato");
         }
     }
 
@@ -46,11 +79,11 @@ public class BlogService {
         Optional<Blog> blogOptional = getBlogById(id);
 
         if(blogOptional.isPresent()){
-            blogs.remove(blogOptional.get());
-            return "Blog con id="+ id + " rimosso";
+            blogRepository.delete(blogOptional.get());
+            return "Blog con id=" + id + " cancellato con successo";
         }
         else{
-            throw new BlogNotFoundException("Blog non trovato");
+            throw new BlogNotFoundException("Blog con id=" + id+ " non trovato");
         }
     }
 }
