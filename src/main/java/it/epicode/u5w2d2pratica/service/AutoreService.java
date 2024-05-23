@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -17,6 +19,8 @@ import java.util.Optional;
 public class AutoreService {
     @Autowired
     private AutoreRepository autoreRepository;
+    @Autowired
+    private JavaMailSenderImpl javaMailSender;
 
     public String saveAutore(AutoreDto autoreDto){
         Autore autore = new Autore();
@@ -27,6 +31,8 @@ public class AutoreService {
         autore.setAvatar("https://ui-avatars.com/api/?name="+autore.getNome()+"+"+autore.getCognome());
 
         autoreRepository.save(autore);
+
+        sendMail(autore.getEmail());
 
         return "Autore con id=" + autore.getId() + " salvato correttamente";
     }
@@ -67,5 +73,14 @@ public class AutoreService {
         else{
             throw new AutoreNotFoundException("Autore con id=" + id+ " non trovato");
         }
+    }
+
+    private void sendMail(String email) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Registrazione Servizio rest");
+        message.setText("Registrazione al servizio rest avvenuta con successo");
+
+        javaMailSender.send(message);
     }
 }

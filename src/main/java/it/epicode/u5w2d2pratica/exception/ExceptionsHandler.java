@@ -33,4 +33,14 @@ public class ExceptionsHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Object> BlogNotFoundHandler(BadRequestException e){
+        Error error = new Error();
+        error.setMessage(e.getMessage());
+        error.setErrorStatus(HttpStatus.BAD_REQUEST);
+        error.setErrorTime(LocalDateTime.now());
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
 }

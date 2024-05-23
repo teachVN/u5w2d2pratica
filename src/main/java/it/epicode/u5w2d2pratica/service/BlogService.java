@@ -1,5 +1,6 @@
 package it.epicode.u5w2d2pratica.service;
 
+import com.cloudinary.Cloudinary;
 import it.epicode.u5w2d2pratica.dto.BlogDto;
 import it.epicode.u5w2d2pratica.exception.AutoreNotFoundException;
 import it.epicode.u5w2d2pratica.exception.BlogNotFoundException;
@@ -9,7 +10,10 @@ import it.epicode.u5w2d2pratica.repository.AutoreRepository;
 import it.epicode.u5w2d2pratica.repository.BlogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +23,8 @@ public class BlogService {
     private BlogRepository blogRepository;
     @Autowired
     private AutoreRepository autoreRepository;
+    @Autowired
+    private Cloudinary cloudinary;
 
     public String saveBlog(BlogDto blogDto){
         Optional<Autore> autoreOptional = autoreRepository.findById(blogDto.getAutoreId());
@@ -86,4 +92,25 @@ public class BlogService {
             throw new BlogNotFoundException("Blog con id=" + id+ " non trovato");
         }
     }
+
+    public String uploadCoverBlog(int id, MultipartFile cover) throws IOException {
+        Optional<Blog> blogOptional = getBlogById(id);
+
+        if(blogOptional.isPresent()){
+            String url = (String)cloudinary.uploader().upload(cover.getBytes(), Collections.emptyMap()).get("url");
+            Blog blog = blogOptional.get();
+            blog.setCover(url);
+
+            blogRepository.save(blog);
+            return "Cover con url=" + url + " salvata correttamente sul blog id=" + id;
+        }
+        else{
+            throw new BlogNotFoundException("Blog con id=" + id+ " non trovato");
+        }
+
+
+
+
+    }
+
 }

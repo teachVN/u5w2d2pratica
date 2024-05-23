@@ -2,10 +2,13 @@ package it.epicode.u5w2d2pratica.controller;
 
 import it.epicode.u5w2d2pratica.dto.AutoreDto;
 import it.epicode.u5w2d2pratica.exception.AutoreNotFoundException;
+import it.epicode.u5w2d2pratica.exception.BadRequestException;
 import it.epicode.u5w2d2pratica.model.Autore;
 import it.epicode.u5w2d2pratica.service.AutoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -16,7 +19,12 @@ public class AutoreController {
     private AutoreService autoreService;
 
     @PostMapping("/api/autori")
-    public String saveAutore(@RequestBody AutoreDto autoreDto){
+    public String saveAutore(@RequestBody @Validated AutoreDto autoreDto, BindingResult bindingResult){
+        if(bindingResult.hasErrors()){
+            throw new BadRequestException(bindingResult.getAllErrors().stream().map(objectError -> objectError.getDefaultMessage()).
+                    reduce("", (s, s2) -> s+s2));
+        }
+
         return autoreService.saveAutore(autoreDto);
     }
 
@@ -38,7 +46,12 @@ public class AutoreController {
         }
     }
     @PutMapping("/api/autori/{id}")
-    public Autore updateAutore(@PathVariable int id , @RequestBody AutoreDto autoreDto){
+    public Autore updateAutore(@PathVariable int id , @RequestBody @Validated AutoreDto autoreDto, BindingResult bindingResult){
+        if(bindingResult.hasErrors()){
+            throw new BadRequestException(bindingResult.getAllErrors().stream().map(objectError -> objectError.getDefaultMessage()).
+                    reduce("", (s, s2) -> s+s2));
+        }
+
        return autoreService.updateAutore(id, autoreDto);
     }
     @DeleteMapping("/api/autori/{id}")
